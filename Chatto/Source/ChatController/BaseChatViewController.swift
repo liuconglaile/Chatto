@@ -99,7 +99,9 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
 
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.keyboardTracker.startTracking()
+        if (isInputContainerHidden == false) {
+            self.keyboardTracker.startTracking()
+        }
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
@@ -137,7 +139,8 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
     var unfinishedBatchUpdatesCount: Int = 0
     var onAllBatchUpdatesFinished: (() -> Void)?
 
-    private var inputContainerBottomConstraint: NSLayoutConstraint!
+    fileprivate var inputContainerBottomConstraint: NSLayoutConstraint!
+    fileprivate var inputContainerHideConstraint: NSLayoutConstraint!
     private func addInputViews() {
         self.inputContainer = UIView(frame: CGRect.zero)
         self.inputContainer.autoresizingMask = UIViewAutoresizing()
@@ -149,6 +152,8 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
         self.inputContainerBottomConstraint = NSLayoutConstraint(item: self.view, attribute: .bottom, relatedBy: .equal, toItem: self.inputContainer, attribute: .bottom, multiplier: 1, constant: 0)
         self.view.addConstraint(self.inputContainerBottomConstraint)
 
+        self.inputContainerHideConstraint = NSLayoutConstraint(item: self.view, attribute: .bottom, relatedBy: .equal, toItem: self.inputContainer, attribute: .top, multiplier: 1, constant: 0)
+        
         let inputView = self.createChatInputView()
         self.inputContainer.addSubview(inputView)
         self.inputContainer.addConstraint(NSLayoutConstraint(item: self.inputContainer, attribute: .top, relatedBy: .equal, toItem: inputView, attribute: .top, multiplier: 1, constant: 0))
@@ -296,6 +301,51 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
     open func referenceIndexPathsToRestoreScrollPositionOnUpdate(itemsBeforeUpdate: ChatItemCompanionCollection, changes: CollectionChanges) -> (beforeUpdate: IndexPath?, afterUpdate: IndexPath?) {
         let firstItemMoved = changes.movedIndexPaths.first
         return (firstItemMoved?.indexPathOld as IndexPath?, firstItemMoved?.indexPathNew as IndexPath?)
+    }
+}
+
+/**
+ Extension to control inputContainerView to hide/show (move out of screen)
+ */
+extension BaseChatViewController { // Control input container
+    
+    public var isInputContainerHidden: Bool {
+        get {
+            return inputContainerHideConstraint.isActive
+        }
+    }
+    
+    public func hideInputContainer(animated: Bool = false) {
+        
+        inputContainer(hide: true, animated: animated)
+    }
+    
+    public func showInputContainer(animated: Bool = false) {
+        
+        inputContainer(hide: false, animated: animated )
+    }
+    
+    public func inputContainer(hide: Bool, animated: Bool = false) {
+        
+        if hide {
+            self.view.endEditing(true)
+        }
+        else {
+            self.keyboardTracker.startTracking()
+        }
+        
+        view.removeConstraint(hide ? inputContainerBottomConstraint : inputContainerHideConstraint)
+        view.addConstraint(hide ? inputContainerHideConstraint : inputContainerBottomConstraint)
+        
+        UIView.animate(withDuration: animated ? constants.updatesAnimationDuration : 0, animations: {
+            self.view.layoutIfNeeded()
+        }) { completed in
+            guard completed else { return }
+            
+            if hide {
+                self.keyboardTracker.stopTracking()
+            }
+        }
     }
 }
 
