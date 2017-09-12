@@ -140,7 +140,7 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
     var onAllBatchUpdatesFinished: (() -> Void)?
 
     fileprivate var inputContainerBottomConstraint: NSLayoutConstraint!
-    fileprivate var inputContainerHideConstraint: NSLayoutConstraint!
+    fileprivate var inputContainerHideConstraint: NSLayoutConstraint?
     private func addInputViews() {
         self.inputContainer = UIView(frame: CGRect.zero)
         self.inputContainer.autoresizingMask = UIViewAutoresizing()
@@ -311,7 +311,7 @@ extension BaseChatViewController { // Control input container
     
     public var isInputContainerHidden: Bool {
         get {
-            return inputContainerHideConstraint.isActive
+            return inputContainerHideConstraint?.isActive ?? false
         }
     }
     
@@ -334,8 +334,13 @@ extension BaseChatViewController { // Control input container
             self.keyboardTracker.startTracking()
         }
         
-        view.removeConstraint(hide ? inputContainerBottomConstraint : inputContainerHideConstraint)
-        view.addConstraint(hide ? inputContainerHideConstraint : inputContainerBottomConstraint)
+        if let removeConstraint = hide ? inputContainerBottomConstraint : inputContainerHideConstraint {
+            view.removeConstraint(removeConstraint)
+        }
+        
+        if let addConstraint = hide ? inputContainerHideConstraint : inputContainerBottomConstraint {
+            view.addConstraint(addConstraint)
+        }
         
         UIView.animate(withDuration: animated ? constants.updatesAnimationDuration : 0, animations: {
             self.view.layoutIfNeeded()
