@@ -99,7 +99,7 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
 
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if (isInputContainerHidden == false) {
+        if self.isInputContainerHidden == false {
             self.keyboardTracker.startTracking()
         }
     }
@@ -151,7 +151,6 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
         self.view.addConstraint(NSLayoutConstraint(item: self.view, attribute: .trailing, relatedBy: .equal, toItem: self.inputContainer, attribute: .trailing, multiplier: 1, constant: 0))
         self.inputContainerBottomConstraint = NSLayoutConstraint(item: self.view, attribute: .bottom, relatedBy: .equal, toItem: self.inputContainer, attribute: .bottom, multiplier: 1, constant: 0)
         self.view.addConstraint(self.inputContainerBottomConstraint)
-
         self.inputContainerHideConstraint = NSLayoutConstraint(item: self.view, attribute: .bottom, relatedBy: .equal, toItem: self.inputContainer, attribute: .top, multiplier: 1, constant: 0)
         
         let inputView = self.createChatInputView()
@@ -309,28 +308,25 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
  */
 extension BaseChatViewController { // Control input container
     
-    public var isInputContainerHidden: Bool {
+    public final var isInputContainerHidden: Bool {
         get {
             return inputContainerHideConstraint?.isActive ?? false
         }
     }
     
-    public func hideInputContainer(animated: Bool = false) {
-        
+    public final func hideInputContainer(animated: Bool = false) {
         inputContainer(hide: true, animated: animated)
     }
     
-    public func showInputContainer(animated: Bool = false) {
-        
+    public final func showInputContainer(animated: Bool = false) {
         inputContainer(hide: false, animated: animated )
     }
     
-    public func inputContainer(hide: Bool, animated: Bool = false) {
+    public final func inputContainer(hide: Bool, animated: Bool = false) {
         
         if hide {
             self.view.endEditing(true)
-        }
-        else {
+        } else {
             self.keyboardTracker.startTracking()
         }
         
